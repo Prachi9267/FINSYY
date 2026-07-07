@@ -167,6 +167,7 @@ def process_statement_file(uploaded_file):
         "total_debit": total_debit,
         "highest_amount": highest_amount,
         "highest_cat": highest_cat,
+        "df": tx_df,
     }
 
 
