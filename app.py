@@ -3,6 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import os
+import dotenv
 from typing import List, Literal
 from pydantic import BaseModel, Field
 from openai import OpenAI
@@ -25,7 +26,7 @@ class CleanedTransaction(BaseModel):
             "MUST be exactly one of the specific keyword rule strings provided in the system prompt "
             "(e.g., 'Food & Dining', 'Travel & Fuel', 'Online Shopping', 'Utilities', 'Investments', 'Groceries'). "
             "If it does NOT match any keyword rules, do NOT use 'Others' or copy the full description; "
-            "instead extract just the short name of the person/merchant to use as the category."
+            "instead extract just the short name of the person to use as the category."
         )
     )
 
@@ -94,6 +95,7 @@ def process_statement_file(uploaded_file):
         "(like Rahul Sharma), DO NOT alter, change, or guess the name. Keep the person's name EXACTLY "
         "as it appears in the raw narration, simply stripping away things like 'UPI/' or transaction IDs around it. "
         "Do not substitute one human name for another."
+        "Do NOT use 'UPI' as a category name under any circumstance. UPI is a payment mode, not a spending category. "
         "The category field must hold ONLY the short clean grouping name. "
         "Do not copy the full narration string into the category field.\n\n"
     )
@@ -113,12 +115,28 @@ def process_statement_file(uploaded_file):
     tx_list = [tx.model_dump() for tx in parsed_data.transactions]
     tx_df = pd.DataFrame(tx_list)
 
+    total_credit = tx_df[tx_df["amount"] > 0]["amount"].sum()
+    total_debit = abs(tx_df[tx_df["amount"] < 0]["amount"].sum())
+
     debit_df = tx_df[tx_df["amount"] < 0].copy()
+    if not debit_df.empty:
+        debit_df["debit_amount"] = debit_df["amount"].abs()
 
-    debit_df["debit_amount"] = debit_df["amount"].abs()
+        # Single highest transaction calculation
+        idx_max = debit_df["debit_amount"].idxmax()
+        highest_amount = debit_df.loc[idx_max, "debit_amount"]
+        highest_cat = debit_df.loc[idx_max, "category"]
 
-    category_totals = debit_df.groupby("category")["debit_amount"].sum().reset_index()
-    category_totals = category_totals.sort_values(by="debit_amount", ascending=False)
+        category_totals = (
+            debit_df.groupby("category")["debit_amount"].sum().reset_index()
+        )
+        category_totals = category_totals.sort_values(
+            by="debit_amount", ascending=False
+        )
+    else:
+        highest_amount = 0.0
+        highest_cat = "N/A"
+        category_totals = pd.DataFrame(columns=["category", "debit_amount"])
 
     fig, ax = plt.subplots(figsize=(16, 7))
     sns.set_theme(style="whitegrid")
@@ -144,7 +162,12 @@ def process_statement_file(uploaded_file):
 
     st.pyplot(fig)
 
-    return parsed_data
+    return {
+        "Total Credit": total_credit,
+        "Total Debit": total_debit,
+        "Highest Amount Debited": highest_amount,
+        "Category involving Highest Debit": highest_cat,
+    }
 
 
 st.title("FINSYY")
@@ -172,25 +195,24 @@ if uploaded_file is not None:
                 with m_col1:
                     st.metric(
                         label="Total Inflow (Credit)",
-                        value=f"₹{result.total_credit:,.2f}",
+                        value=f"₹{result['total_credit']:,.2f}",
                     )
                 with m_col2:
                     st.metric(
                         label="Total Outflow (Debit)",
-                        value=f"₹{result.total_debit:,.2f}",
+                        value=f"₹{result['total_debit']:,.2f}",
                     )
                 with m_col3:
                     st.metric(
                         label="Highest Single Outflow",
-                        value=f"₹{result.highest_amount:,.2f}",
-                        delta=result.highest_cat,
+                        value=f"₹{result['highest_amount']:,.2f}",
+                        delta=result["highest_cat"],
                         delta_color="inverse",
                     )
 
                 # Render Cleaned Interactive Data Table
                 st.markdown("### Processed Transaction Directory")
-                final_df = pd.DataFrame([tx.model_dump() for tx in result.transactions])
-                st.dataframe(final_df, use_container_width=True)
+                st.dataframe(result["df"], use_container_width=True)
 
             except Exception as e:
                 st.error(f"Execution crashed: {e}")
