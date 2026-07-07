@@ -60,12 +60,6 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 
 def process_statement_file(uploaded_file):
-    """
-    Accepts a streamlit uploadedfile object directly from the web interface.
-    """
-
-    raw_table_string = "..."
-
     filename = uploaded_file.name
 
     if filename.endswith("xlsx") or filename.endswith(".xls"):
@@ -90,14 +84,12 @@ def process_statement_file(uploaded_file):
         "- 'Utilities': If the narration contains ELECTRICITY, WATER, BILL, RECHARGE, AIRTEL, RENT or INTERNET, or cloud infrastructure exceptions like AWS.\n"
         "- 'Investments': If the narration contains INSURANCE, SIP, MUTUAL FUND, or GROWW.\n"
         "- 'Groceries': If the narration contains BLINKIT, BIGBASKET, GROCERY, MART, ZEPTO, INSTAMART, DMART or ALL MART, or 'AMAZON OAY GROCERIES'.\n\n"
-        "If a narration does not contain any of the keywords listed above, DO NOT classify it as 'Others'. "
-        "CRITICAL NAME RULE: For the 'description' field, if the transaction involves an individual's name "
-        "(like Rahul Sharma), DO NOT alter, change, or guess the name. Keep the person's name EXACTLY "
-        "as it appears in the raw narration, simply stripping away things like 'UPI/' or transaction IDs around it. "
-        "Do not substitute one human name for another."
-        "Do NOT use 'UPI' as a category name under any circumstance. UPI is a payment mode, not a spending category. "
-        "The category field must hold ONLY the short clean grouping name. "
-        "Do not copy the full narration string into the category field.\n\n"
+        "CRITICAL FALLBACK RULE:\n"
+        "Do NOT use 'UPI' as a category name under any circumstance.\n"
+        "If a transaction does not fit any of the predefined rules above, extract a brief, "
+        "clean, short group title representing the category or destination merchant name "
+        "(e.g., if it's a medical shop, use 'Medical & Healthcare'; if it's a subscription, use 'Subscriptions'). "
+        "Keep it to 2-3 words max."
     )
     response = client.beta.chat.completions.parse(
         model="gpt-4o",
@@ -115,8 +107,10 @@ def process_statement_file(uploaded_file):
     tx_list = [tx.model_dump() for tx in parsed_data.transactions]
     tx_df = pd.DataFrame(tx_list)
 
-    total_credit = tx_df[tx_df["amount"] > 0]["amount"].sum()
-    total_debit = abs(tx_df[tx_df["amount"] < 0]["amount"].sum())
+    tx_df["amount"] = pd.to_numeric(tx_df["amount"], errors="coerce").fillna(0.0)
+
+    total_credit = float(tx_df[tx_df["amount"] > 0]["amount"].sum())
+    total_debit = float(abs(tx_df[tx_df["amount"] < 0]["amount"].sum()))
 
     debit_df = tx_df[tx_df["amount"] < 0].copy()
     if not debit_df.empty:
