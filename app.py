@@ -163,10 +163,10 @@ def process_statement_file(uploaded_file):
     st.pyplot(fig)
 
     return {
-        "Total Credit": total_credit,
-        "Total Debit": total_debit,
-        "Highest Amount Debited": highest_amount,
-        "Category involving Highest Debit": highest_cat,
+        "total_credit": total_credit,
+        "total_debit": total_debit,
+        "highest_amount": highest_amount,
+        "highest_cat": highest_cat,
     }
 
 
