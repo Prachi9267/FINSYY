@@ -88,7 +88,7 @@ def process_statement_file(uploaded_file):
         "Do NOT use 'UPI' as a category name under any circumstance.\n"
         "If a transaction does not fit any of the predefined rules above, extract a brief, "
         "clean, short group title representing the category or destination merchant name "
-        "(e.g., if it's a medical shop, use 'Medical & Healthcare'; if it's a subscription, use 'Subscriptions'). "
+        "If it is a name of person(e.g radhika, priyanka) the catgeory should alse be the name of person. "
         "Keep it to 2-3 words max."
     )
     response = client.beta.chat.completions.parse(
