@@ -89,6 +89,7 @@ def process_statement_file(uploaded_file):
         "If a transaction does not fit any of the predefined rules above, extract a brief, "
         "clean, short group title representing the category or destination merchant name "
         "If it is a name of person(e.g radhika, priyanka) the catgeory should alse be the name of person. "
+        "There should not be any catgeory as Others."
         "Keep it to 2-3 words max."
     )
     response = client.beta.chat.completions.parse(
