@@ -14,14 +14,130 @@ st.set_page_config(page_title="Finsyy", layout="wide")
 st.markdown(
     """
 <style>
-
-.stApp {
+/* Main background */
+[data-testid="stAppViewContainer"] {
     background: linear-gradient(
-        120deg,
-        #FFF9F2,
-        #A9B89A
+        180deg,
+        #FFF9F2 ,
+        #FFFFFF
     );
 }
+
+
+/* Remove top header background */
+[data-testid="stHeader"] {
+    background: transparent;
+}
+
+
+/* Main content width */
+.block-container {
+    padding-top: 2rem;
+    padding-left: 4rem;
+    padding-right: 4rem;
+}
+
+
+/* Brand title */
+h1 {
+    color: #FF8F63;
+    font-weight: 800;
+    letter-spacing: -1px;
+}
+
+
+/* All headings */
+h2, h3 {
+    color: #1F2937;
+}
+
+
+/* Normal text */
+p {
+    color: #6B7280;
+    font-size: 17px;
+}
+
+
+/* Upload box */
+section[data-testid="stFileUploader"] > div{
+    background: #FFFFFF;
+    padding: 25px;
+    border-radius: 22px;
+    border: 2px dashed #C9A24B !important;
+}
+
+
+/* Buttons */
+.stButton button {
+
+    background: #FF8F63;
+    color: white;
+
+    border-radius: 22px;
+    border: none;
+
+    padding: 12px 30px;
+
+    font-size: 16px;
+    font-weight: 600;
+
+    transition: 0.3s;
+}
+
+
+/* Button hover */
+.stButton button:hover {
+
+    background:#ff7342;
+    transform:translateY(-2px);
+
+}
+
+
+/* Metric cards */
+
+[data-testid="stMetric"] {
+
+    background:#FFFFFF;
+
+    border-radius:22px;
+
+    padding:25px;
+
+    box-shadow:
+    0 15px 35px rgba(0,0,0,0.08);
+
+}
+
+
+/* Metric numbers */
+
+[data-testid="stMetricValue"] {
+
+    color:#FF8F63;
+    font-weight:700;
+
+}
+
+
+/* Dataframe card */
+
+[data-testid="stDataFrame"] {
+
+    border-radius:22px;
+
+}
+
+
+/* Info messages */
+
+.stAlert {
+
+    border-radius:18px;
+
+}
+
 
 </style>
 """,
@@ -189,12 +305,40 @@ def process_statement_file(uploaded_file):
     }
 
 
-st.title("FINSYY")
-st.write("Analyze and Improve Your Relationship with Money.")
+st.markdown(
+    """
+<div style="
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+">
 
-uploaded_file = st.file_uploader(
-    "Drop your bank statement here(XLSX or XLS)", type=["xls", "xlsx"]
+<h1 style="
+    font-size:65px;
+    color:#FF8F63;
+    font-weight:800;
+    margin:0;
+    line-height:1;
+">
+FINSYY
+</h1>
+
+<p style="
+    font-size:22px;
+    color:#A9B89A;
+    margin:8px 0 0 0;
+    text-align:center;
+">
+Analyze and Improve Your Relationship with Money.
+</p>
+
+</div>
+""",
+    unsafe_allow_html=True,
 )
+
+uploaded_file = st.file_uploader("", type=["xls", "xlsx"])
 
 if uploaded_file is not None:
     st.success(f"Loaded: {uploaded_file.name}")
@@ -235,5 +379,3 @@ if uploaded_file is not None:
 
             except Exception as e:
                 st.error(f"Execution crashed: {e}")
-else:
-    st.info("BE THE MASTER OF YOUR MONEY.")
