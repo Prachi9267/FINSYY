@@ -236,4 +236,4 @@ if uploaded_file is not None:
             except Exception as e:
                 st.error(f"Execution crashed: {e}")
 else:
-    st.info("Awaiting structural document upload to run categorization pipelines.")
+    st.info("BE THE MASTER OF YOUR MONEY.")
