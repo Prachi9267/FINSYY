@@ -133,13 +133,15 @@ def process_statement_file(uploaded_file):
         highest_cat = "N/A"
         category_totals = pd.DataFrame(columns=["category", "debit_amount"])
 
-    fig, ax = plt.subplots(figsize=(16, 7))
+    top_10 = category_totals.sort_values(by="debit_amount", ascending=False).head(10)
+
+    fig, ax = plt.subplots(figsize=(12, 6))
     sns.set_theme(style="whitegrid")
 
     sns.barplot(
         x="category",
         y="debit_amount",
-        data=category_totals,
+        data=top_10,
         palette="Reds_r",
         hue="category",
         legend=False,
@@ -150,7 +152,7 @@ def process_statement_file(uploaded_file):
     plt.title(
         "Total Debit Spending by Category", fontsize=14, fontweight="bold", pad=15
     )
-    plt.xlabel("Categories", fontsize=12)
+    plt.xlabel(" Top 10 Categories", fontsize=12)
     plt.ylabel("Total Amount Spent (Debited)", fontsize=12)
     plt.xticks(rotation=90, ha="center", va="top", fontsize=10)
     plt.tight_layout()
