@@ -9,7 +9,24 @@ from pydantic import BaseModel, Field
 from openai import OpenAI
 from dotenv import load_dotenv
 
-st.set_page_config(page_title="Finsyy Portal", layout="wide")
+st.set_page_config(page_title="Finsyy", layout="wide")
+
+st.markdown(
+    """
+<style>
+
+.stApp {
+    background: linear-gradient(
+        135deg,
+        #FFF9F2,
+        #FF8F63
+    );
+}
+
+</style>
+""",
+    unsafe_allow_html=True,
+)
 
 
 class CleanedTransaction(BaseModel):
@@ -64,10 +81,8 @@ def process_statement_file(uploaded_file):
 
     if filename.endswith("xlsx") or filename.endswith(".xls"):
         df = pd.read_excel(uploaded_file)
-    elif filename.endswith("csv"):
-        df = pd.read_csv(uploaded_file)
     else:
-        raise ValueError("Unsupported file format. Please use CSV or XLSX.")
+        raise ValueError("Unsupported file format. Please use XLS or XLSX.")
 
     df = df.dropna(how="all")
     raw_table_string = df.to_string(index=False)
@@ -148,9 +163,15 @@ def process_statement_file(uploaded_file):
         ax=ax,
     )
     for container in ax.containers:
-        ax.bar_label(container, fmt="%.2f", padding=3, fontsize=9, rotation=0)
+        ax.bar_label(
+            container, fmt="%.2f", padding=3, fontsize=9, rotation=0, color="#A9B89A"
+        )
     plt.title(
-        "Total Debit Spending by Category", fontsize=14, fontweight="bold", pad=15
+        "Total Debit Spending by Category",
+        fontsize=14,
+        fontweight="bold",
+        pad=15,
+        color="#A9B89A",
     )
     plt.xlabel(" Top 10 Categories", fontsize=12)
     plt.ylabel("Total Amount Spent (Debited)", fontsize=12)
@@ -169,10 +190,10 @@ def process_statement_file(uploaded_file):
 
 
 st.title("FINSYY")
-st.write("Analyze and improve your relationship with money.")
+st.write("Analyze and Improve Your Relationship with Money.")
 
 uploaded_file = st.file_uploader(
-    "Drop your bank statement here(XLSX, XLS, OR CSV)", type=["xls", "xlsx", "csv"]
+    "Drop your bank statement here(XLSX or XLS)", type=["xls", "xlsx"]
 )
 
 if uploaded_file is not None:
@@ -181,28 +202,28 @@ if uploaded_file is not None:
     # Process Button execution trigger
     if st.button("Categorize Statement Data", type="primary"):
         with st.spinner(
-            "Analyzing statement structures and executing processing engine..."
+            "First Step Towards Financial Empowerment is Financial Awareness..."
         ):
             try:
                 # Execute engine
                 result = process_statement_file(uploaded_file)
 
                 # Display Summary Metric Scorecard Layout
-                st.markdown("### Executive Financial Summary")
+                st.markdown("### Executive Financial Summary💡")
                 m_col1, m_col2, m_col3 = st.columns(3)
                 with m_col1:
                     st.metric(
-                        label="Total Inflow (Credit)",
+                        label="💰Total Inflow (Credit)",
                         value=f"₹{result['total_credit']:,.2f}",
                     )
                 with m_col2:
                     st.metric(
-                        label="Total Outflow (Debit)",
+                        label="💸Total Outflow (Debit)",
                         value=f"₹{result['total_debit']:,.2f}",
                     )
                 with m_col3:
                     st.metric(
-                        label="Highest Single Outflow",
+                        label="📉Highest Single Outflow",
                         value=f"₹{result['highest_amount']:,.2f}",
                         delta=result["highest_cat"],
                         delta_color="inverse",
