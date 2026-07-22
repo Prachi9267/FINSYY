@@ -19,7 +19,7 @@ st.markdown(
     background: linear-gradient(
         120deg,
         #FFF9F2,
-        #FA9B89A
+        #A9B89A
     );
 }
 
